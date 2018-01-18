@@ -1,5 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var { ObjectID } = require('mongodb');
 
 var { mongoose } = require('./db/mongoose');
 var { Todo } = require('./models/todo');
@@ -21,14 +22,34 @@ app.post('/todos', (req, res) => {
     });
 });
 
-app.get('/todos',(req,res)=>{
+app.get('/todos', (req, res) => {
     Todo.find()
-    .then(docs=>{
-        res.status(200).send({todos:docs});
-    })
-    .catch(error=>{
-        res.status(400).send(error);
-    })
+        .then(docs => {
+            res.status(200).send({ todos: docs });
+        })
+        .catch(error => {
+            res.status(400).send(error);
+        })
+});
+
+app.get('/todos/:id', (req, res) => {
+    var id = req.params.id;
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(400).send();
+    }
+
+    Todo.findById(id)
+        .then((todo) => {
+            if (todo) {
+                res.status(200).send(todo);
+            } else {
+                res.status(404).send();
+            }
+        })
+        .catch(error => {
+            res.status(500).send();
+        });
 });
 
 app.listen(3000, () => {
